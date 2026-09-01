@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dastarkhwan — 3D AR Menu</title>
+<script type="module" src="https://unpkg.com/@google/model-viewer@4.1.0/dist/model-viewer.min.js"></script>
+<style>
+:root{--ink:#211b15;--paper:#f6efe2;--card:#fffdf8;--clay:#b5502e;--olive:#5c6b47;--line:#ddd0b8;--muted:#6b6152}
+*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font-family:Georgia,"Times New Roman",serif}
+header{padding:30px 20px 22px;text-align:center;border-bottom:2px solid var(--line)}
+.kicker{font-family:system-ui,sans-serif;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--olive);margin-bottom:7px}
+h1{margin:0;font-size:36px;font-weight:400}header p{font-family:system-ui,sans-serif;font-size:14px;color:var(--muted);max-width:600px;margin:9px auto 0;line-height:1.5}
+main{max-width:560px;margin:auto;padding:22px 16px 60px}.dish{background:var(--card);border:1px solid var(--line);border-radius:12px;margin-bottom:26px;overflow:hidden;box-shadow:0 8px 24px rgba(80,55,25,.08)}
+model-viewer{display:block;width:100%;height:330px;background:linear-gradient(145deg,#eee4d1,#f7f0e4);--poster-color:transparent}
+.dish-info{padding:17px 18px 10px;display:flex;justify-content:space-between;gap:16px;align-items:flex-start}
+h2{margin:0 0 5px;font-size:22px;font-weight:400}.desc{font-family:system-ui,sans-serif;font-size:13.5px;line-height:1.5;color:var(--muted);margin:0}.price{font-family:system-ui,sans-serif;font-size:16px;color:var(--clay);font-weight:700;white-space:nowrap}
+.ar-row{padding:12px 18px 18px;display:flex;justify-content:space-between;align-items:center;gap:10px;font-family:system-ui,sans-serif}.ar-hint{font-size:12px;color:#8a7f6c}
+.ar-button{background:var(--clay);color:#fff;border:0;padding:11px 18px;border-radius:30px;font-size:13.5px;font-weight:700;display:flex;align-items:center;gap:7px;cursor:pointer;box-shadow:0 4px 12px rgba(120,55,30,.18)}.ar-button:active{transform:scale(.98)}
+.ar-button svg{width:16px;height:16px}.controls{font-family:system-ui,sans-serif;text-align:center;font-size:12px;color:#8a7f6c;margin-top:-5px}
+footer{text-align:center;font-family:system-ui,sans-serif;font-size:12px;color:#a89d87;padding:10px 20px 28px}
+@media(max-width:430px){h1{font-size:32px}model-viewer{height:285px}.dish-info{padding-left:15px;padding-right:15px}.ar-row{padding-left:15px;padding-right:15px}.ar-hint{max-width:155px}}
+</style>
+</head>
+<body>
+<header>
+  <div class="kicker">Table 12 · Digital Menu</div>
+  <h1>Dastarkhwan</h1>
+  <p>Rotate each dish in 3D, then tap <b>View in AR</b> to place it life-size on your table.</p>
+</header>
+
+<main>
+  <article class="dish">
+    <model-viewer
+      src="models/avocado-salad.glb"
+      ar
+      ar-modes="webxr scene-viewer quick-look"
+      camera-controls
+      auto-rotate
+      rotation-per-second="18deg"
+      shadow-intensity="1"
+      shadow-softness="0.8"
+      exposure="1.05"
+      environment-image="neutral"
+      camera-orbit="0deg 70deg 2.2m"
+      min-camera-orbit="auto auto 1.1m"
+      max-camera-orbit="auto auto 4m"
+      alt="3D avocado and herb salad on a ceramic plate">
+    </model-viewer>
+    <div class="dish-info">
+      <div><h2>Avocado &amp; Herb Salad</h2><p class="desc">Fresh avocado, lemon, olive oil, house herbs.</p></div>
+      <div class="price">Rs 650</div>
+    </div>
+    <div class="ar-row">
+      <span class="ar-hint">Drag to rotate · pinch to zoom</span>
+      <button class="ar-button" type="button" onclick="openAR(this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l9 5v10l-9 5-9-5V7z"/><path d="M3 7l9 5 9-5M12 12v10"/></svg>
+        View in AR
+      </button>
+    </div>
+  </article>
+
+  <article class="dish">
+    <model-viewer
+      src="models/chef-special.glb"
+      ar
+      ar-modes="webxr scene-viewer quick-look"
+      camera-controls
+      auto-rotate
+      rotation-per-second="16deg"
+      shadow-intensity="1"
+      shadow-softness="0.8"
+      exposure="1.05"
+      environment-image="neutral"
+      camera-orbit="0deg 70deg 2.2m"
+      min-camera-orbit="auto auto 1.1m"
+      max-camera-orbit="auto auto 4m"
+      alt="3D chef special grilled chicken and rice on a ceramic plate">
+    </model-viewer>
+    <div class="dish-info">
+      <div><h2>Chef's Special</h2><p class="desc">Grilled chicken, fragrant rice, roasted vegetables and lemon.</p></div>
+      <div class="price">Rs 1,200</div>
+    </div>
+    <div class="ar-row">
+      <span class="ar-hint">Drag to rotate · pinch to zoom</span>
+      <button class="ar-button" type="button" onclick="openAR(this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l9 5v10l-9 5-9-5V7z"/><path d="M3 7l9 5 9-5M12 12v10"/></svg>
+        View in AR
+      </button>
+    </div>
+  </article>
+</main>
+
+<footer>3D menu demo · Works best over HTTPS in Chrome on Android and Safari on supported iPhones.</footer>
+
+<script>
+function openAR(button){
+  const viewer=button.closest(".dish").querySelector("model-viewer");
+  if(!viewer){alert("AR viewer could not be found.");return;}
+  if(!viewer.hasAttribute("ar")){alert("AR is not enabled for this item.");return;}
+  if(viewer.canActivateAR===false){
+    alert("AR is not available on this phone/browser. On Android, use Chrome and make sure Google Play Services for AR is installed. On iPhone, open this page in Safari on an ARKit-compatible device.");
+    return;
+  }
+  try{viewer.activateAR();}
+  catch(e){console.error(e);alert("AR could not be started. Please open the website directly in Chrome (Android) or Safari (iPhone) and try again.");}
+}
+</script>
+</body>
+</html>
