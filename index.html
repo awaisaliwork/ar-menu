@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Dastarkhwan — AR Menu</title>
+<script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
+<style>
+  :root {
+    --ink: #1f1b16;
+    --paper: #f6efe2;
+    --clay: #b5502e;
+    --olive: #5c6b47;
+    --line: #ddd0b8;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: Georgia, 'Times New Roman', serif;
+  }
+  header {
+    padding: 28px 20px 18px;
+    text-align: center;
+    border-bottom: 2px solid var(--line);
+  }
+  header .kicker {
+    font-family: -apple-system, sans-serif;
+    font-size: 13px;
+    letter-spacing: 0.02em;
+    color: var(--olive);
+    margin-bottom: 6px;
+  }
+  header h1 { margin: 0; font-size: 34px; font-weight: 400; }
+  header p {
+    font-family: -apple-system, sans-serif;
+    font-size: 14px;
+    color: #6b6152;
+    margin: 8px 0 0;
+  }
+  main { max-width: 480px; margin: 0 auto; padding: 20px 16px 60px; }
+  .dish {
+    background: #fffdf8;
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    margin-bottom: 22px;
+    overflow: hidden;
+  }
+  .dish-info {
+    padding: 16px 18px 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 12px;
+  }
+  .dish-info h2 { margin: 0 0 4px; font-size: 21px; font-weight: 400; }
+  .dish-info .desc {
+    font-family: -apple-system, sans-serif;
+    font-size: 13.5px;
+    line-height: 1.5;
+    color: #6b6152;
+    margin: 0;
+  }
+  .price {
+    font-family: -apple-system, sans-serif;
+    font-size: 16px;
+    color: var(--clay);
+    white-space: nowrap;
+    font-weight: 600;
+  }
+  model-viewer {
+    width: 100%;
+    height: 260px;
+    background: #efe6d3;
+    --poster-color: transparent;
+  }
+  .ar-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 18px 16px;
+    font-family: -apple-system, sans-serif;
+    gap: 10px;
+  }
+  .ar-hint { font-size: 12px; color: #8a7f6c; }
+  .btn-row { display: flex; gap: 8px; }
+  .ar-button, .cam-button {
+    border: none;
+    padding: 10px 16px;
+    border-radius: 30px;
+    font-size: 13px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+  }
+  .ar-button { background: var(--clay); color: white; }
+  .cam-button { background: var(--olive); color: white; }
+  .ar-button svg, .cam-button svg { width: 15px; height: 15px; }
+  .ar-button.is-hidden, .cam-button.is-hidden { display: none; }
+  footer {
+    text-align: center;
+    font-family: -apple-system, sans-serif;
+    font-size: 12px;
+    color: #a89d87;
+    padding: 20px;
+  }
+
+  /* Camera Preview (pseudo-AR) overlay */
+  #cam-overlay {
+    position: fixed;
+    inset: 0;
+    background: #000;
+    z-index: 999;
+    display: none;
+  }
+  #cam-overlay.open { display: block; }
+  #cam-video {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  #cam-canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+  #cam-close {
+    position: absolute;
+    top: 18px;
+    right: 18px;
+    z-index: 2;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: rgba(0,0,0,0.55);
+    color: white;
+    border: none;
+    font-size: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  #cam-hint {
+    position: absolute;
+    bottom: 24px;
+    left: 0;
+    right: 0;
+    text-align: center;
+    color: white;
+    font-family: -apple-system, sans-serif;
+    font-size: 13px;
+    background: rgba(0,0,0,0.4);
+    padding: 8px 16px;
+    margin: 0 40px;
+    border-radius: 20px;
+  }
+  #cam-status {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-family: -apple-system, sans-serif;
+    font-size: 14px;
+    text-align: center;
+    padding: 0 30px;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="kicker">Table 12 · Digital Menu</div>
+  <h1>Dastarkhwan</h1>
+  <p>Preview any dish before you order — in full AR, or with Camera Preview on any phone.</p>
+</header>
+
+<main>
+
+  <div class="dish">
+    <model-viewer
+      src="https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/Avocado/glTF-Binary/Avocado.glb"
+      ar
+      ar-modes="webxr scene-viewer quick-look"
+      camera-controls
+      auto-rotate
+      shadow-intensity="1"
+      exposure="1.1"
+      alt="3D model of avocado salad">
+      <button slot="ar-button" style="display:none"></button>
+    </model-viewer>
+    <div class="dish-info">
+      <div>
+        <h2>Avocado & Herb Salad</h2>
+        <p class="desc">Fresh avocado, lemon, olive oil, house herbs.</p>
+      </div>
+      <div class="price">Rs 650</div>
+    </div>
+    <div class="ar-row">
+      <span class="ar-hint">Preview before you order</span>
+      <div class="btn-row">
+        <button class="ar-button is-hidden" data-model="https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/Avocado/glTF-Binary/Avocado.glb">
+          <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M12 2l9 5v10l-9 5-9-5V7z"/><path d="M3 7l9 5 9-5M12 12v10"/></svg>
+          View in AR
+        </button>
+        <button class="cam-button" data-model="https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/Avocado/glTF-Binary/Avocado.glb">
+          <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+          Camera Preview
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="dish">
+    <model-viewer
+      src="https://modelviewer.dev/shared-assets/models/Astronaut.glb"
+      ar
+      ar-modes="webxr scene-viewer quick-look"
+      camera-controls
+      auto-rotate
+      shadow-intensity="1"
+      exposure="1.1"
+      alt="3D placeholder model — replace with a scanned dish">
+      <button slot="ar-button" style="display:none"></button>
+    </model-viewer>
+    <div class="dish-info">
+      <div>
+        <h2>Chef's Special (Sample Slot)</h2>
+        <p class="desc">Placeholder model — swap this file for your own scanned dish.</p>
+      </div>
+      <div class="price">Rs 1,200</div>
+    </div>
+    <div class="ar-row">
+      <span class="ar-hint">Preview before you order</span>
+      <div class="btn-row">
+        <button class="ar-button is-hidden" data-model="https://modelviewer.dev/shared-assets/models/Astronaut.glb">
+          <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M12 2l9 5v10l-9 5-9-5V7z"/><path d="M3 7l9 5 9-5M12 12v10"/></svg>
+          View in AR
+        </button>
+        <button class="cam-button" data-model="https://modelviewer.dev/shared-assets/models/Astronaut.glb">
+          <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+          Camera Preview
+        </button>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<footer>
+  Demo built with model-viewer + three.js · replace model files with your own 3D scans
+</footer>
+
+<!-- Universal Camera Preview overlay: works on virtually any phone with a camera + gyroscope,
+     no ARCore/ARKit certification or app install required. This is NOT true world-tracking AR —
+     the dish floats over the live camera feed and rotates with the phone — but it gives every
+     customer, on every device, a live camera-based look at the dish before ordering. -->
+<div id="cam-overlay">
+  <video id="cam-video" autoplay playsinline muted></video>
+  <canvas id="cam-canvas"></canvas>
+  <button id="cam-close" aria-label="Close">✕</button>
+  <div id="cam-hint">Move your phone gently — the dish turns with you</div>
+  <div id="cam-status"></div>
+</div>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+  }
+}
+</script>
+
+<script>
+  // ---- Real AR detection (unchanged): show "View in AR" only where it will genuinely work ----
+  document.querySelectorAll('.dish').forEach((card) => {
+    const mv = card.querySelector('model-viewer');
+    const btn = card.querySelector('.ar-button');
+
+    mv.addEventListener('ar-status', (event) => {
+      if (event.detail.status === 'failed') btn.classList.add('is-hidden');
+    });
+
+    const checkArSupport = () => {
+      if (mv.canActivateAR) {
+        btn.classList.remove('is-hidden');
+        btn.addEventListener('click', () => mv.activateAR());
+      } else {
+        btn.classList.add('is-hidden');
+      }
+    };
+
+    if (mv.loaded) checkArSupport();
+    else mv.addEventListener('load', checkArSupport, { once: true });
+  });
+</script>
+
+<script type="module">
+  import * as THREE from 'three';
+  import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+
+  const overlay = document.getElementById('cam-overlay');
+  const video = document.getElementById('cam-video');
+  const canvas = document.getElementById('cam-canvas');
+  const closeBtn = document.getElementById('cam-close');
+  const statusEl = document.getElementById('cam-status');
+
+  let renderer, scene, camera, currentModel, stream, animId;
+  let orientation = { alpha: 0, beta: 0, gamma: 0 };
+
+  function initThree() {
+    renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+    renderer.setPixelRatio(window.devicePixelRatio);
+    renderer.setSize(window.innerWidth, window.innerHeight);
+
+    scene = new THREE.Scene();
+    camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 100);
+    camera.position.set(0, 0, 0);
+
+    scene.add(new THREE.HemisphereLight(0xffffff, 0x444444, 1.2));
+    const dir = new THREE.DirectionalLight(0xffffff, 1.2);
+    dir.position.set(1, 2, 1);
+    scene.add(dir);
+  }
+
+  function loadModel(url) {
+    if (currentModel) {
+      scene.remove(currentModel);
+      currentModel = null;
+    }
+    const loader = new GLTFLoader();
+    loader.load(url, (gltf) => {
+      const model = gltf.scene;
+      const box = new THREE.Box3().setFromObject(model);
+      const size = new THREE.Vector3();
+      box.getSize(size);
+      const maxDim = Math.max(size.x, size.y, size.z) || 1;
+      const scale = 0.35 / maxDim; // fit to a comfortable ~35cm-equivalent view
+      model.scale.setScalar(scale);
+
+      const center = new THREE.Vector3();
+      box.getCenter(center);
+      model.position.sub(center.multiplyScalar(scale));
+      model.position.z = -0.8; // place it ~0.8m in front of the camera
+
+      scene.add(model);
+      currentModel = model;
+    });
+  }
+
+  function handleOrientation(e) {
+    orientation.alpha = e.alpha || 0;
+    orientation.beta = e.beta || 0;
+    orientation.gamma = e.gamma || 0;
+  }
+
+  function applyOrientationToCamera() {
+    const alpha = THREE.MathUtils.degToRad(orientation.alpha);
+    const beta = THREE.MathUtils.degToRad(orientation.beta);
+    const gamma = THREE.MathUtils.degToRad(orientation.gamma);
+
+    const euler = new THREE.Euler();
+    euler.set(beta, alpha, -gamma, 'YXZ');
+    camera.quaternion.setFromEuler(euler);
+  }
+
+  function animate() {
+    animId = requestAnimationFrame(animate);
+    applyOrientationToCamera();
+    if (currentModel) currentModel.rotation.y += 0.002; // gentle auto-spin too
+    renderer.render(scene, camera);
+  }
+
+  function onResize() {
+    if (!renderer) return;
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+  }
+  window.addEventListener('resize', onResize);
+
+  async function openCameraPreview(modelUrl) {
+    overlay.classList.add('open');
+    statusEl.textContent = 'Starting camera…';
+
+    if (!renderer) initThree();
+    loadModel(modelUrl);
+
+    try {
+      // iOS 13+ requires an explicit permission prompt for motion sensors
+      if (typeof DeviceOrientationEvent !== 'undefined' &&
+          typeof DeviceOrientationEvent.requestPermission === 'function') {
+        const res = await DeviceOrientationEvent.requestPermission();
+        if (res !== 'granted') {
+          statusEl.textContent = 'Motion access denied — showing preview without tilt.';
+        }
+      }
+      window.addEventListener('deviceorientation', handleOrientation);
+
+      stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: 'environment' },
+        audio: false
+      });
+      video.srcObject = stream;
+      statusEl.textContent = '';
+      animate();
+    } catch (err) {
+      statusEl.textContent = 'Camera access is needed for this preview. Please allow camera access and try again.';
+    }
+  }
+
+  function closeCameraPreview() {
+    overlay.classList.remove('open');
+    if (animId) cancelAnimationFrame(animId);
+    window.removeEventListener('deviceorientation', handleOrientation);
+    if (stream) {
+      stream.getTracks().forEach(t => t.stop());
+      stream = null;
+    }
+  }
+
+  closeBtn.addEventListener('click', closeCameraPreview);
+
+  document.querySelectorAll('.cam-button').forEach((btn) => {
+    btn.addEventListener('click', () => openCameraPreview(btn.dataset.model));
+  });
+</script>
+
+</body>
+</html>
