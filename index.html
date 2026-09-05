@@ -336,6 +336,9 @@
       scene.remove(currentModel);
       currentModel = null;
     }
+    dragRotationY = 0;
+    dragRotationX = 0;
+    autoSpinPaused = false;
     const loader = new GLTFLoader();
     loader.load(url, (gltf) => {
       const model = gltf.scene;
@@ -372,10 +375,53 @@
     camera.quaternion.setFromEuler(euler);
   }
 
+  // Hand/drag rotation — works with a finger (touch) or mouse, independent of
+  // device orientation permission, so rotation always works even if motion
+  // access is denied or unavailable.
+  let isDragging = false;
+  let lastX = 0, lastY = 0;
+  let dragRotationY = 0, dragRotationX = 0;
+  let autoSpinPaused = false;
+  let autoSpinResumeTimer = null;
+
+  function onDragStart(x, y) {
+    isDragging = true;
+    autoSpinPaused = true;
+    lastX = x;
+    lastY = y;
+    if (autoSpinResumeTimer) clearTimeout(autoSpinResumeTimer);
+  }
+
+  function onDragMove(x, y) {
+    if (!isDragging) return;
+    const deltaX = x - lastX;
+    const deltaY = y - lastY;
+    lastX = x;
+    lastY = y;
+    dragRotationY += deltaX * 0.008;
+    dragRotationX += deltaY * 0.008;
+    dragRotationX = Math.max(-0.6, Math.min(0.6, dragRotationX)); // limit tilt
+  }
+
+  function onDragEnd() {
+    isDragging = false;
+    // resume gentle auto-spin a moment after the customer lets go
+    autoSpinResumeTimer = setTimeout(() => { autoSpinPaused = false; }, 1200);
+  }
+
+  canvas.addEventListener('pointerdown', (e) => onDragStart(e.clientX, e.clientY));
+  canvas.addEventListener('pointermove', (e) => onDragMove(e.clientX, e.clientY));
+  window.addEventListener('pointerup', onDragEnd);
+  canvas.style.touchAction = 'none';
+
   function animate() {
     animId = requestAnimationFrame(animate);
     applyOrientationToCamera();
-    if (currentModel) currentModel.rotation.y += 0.002; // gentle auto-spin too
+    if (currentModel) {
+      if (!autoSpinPaused) dragRotationY += 0.002; // gentle auto-spin when idle
+      currentModel.rotation.y = dragRotationY;
+      currentModel.rotation.x = dragRotationX;
+    }
     renderer.render(scene, camera);
   }
 
